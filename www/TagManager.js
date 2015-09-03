@@ -63,6 +63,47 @@
         });
     };
 
+    // log a timing
+    //
+    // category = The timing category. This parameter is required to be non-empty.
+    // timingVar = The timing var. This parameter is required to be non-empty.
+    // timingLabel = The timing label. This parameter may be a blank string to indicate no label.
+    // timingValue = The timing value. This parameter is in ms
+    // userId = The ID of the user to track
+    TagManager.prototype.trackTiming = function(success, fail, category, timingVar, timingLabel, timingValue, userId) {
+        var timestamp = new Date().getTime();
+        queue.push({
+            timestamp: timestamp,
+            method: 'trackTiming',
+            success: success,
+            fail: fail,
+            category: category,
+            timingVar: timingVar,
+            timingLabel: timingLabel,
+            timingValue: timingValue,
+            userId: userId
+        });
+    };
+
+    // log an exception
+    //
+    // exceptionDescription = The exception description. This parameter is required to be non-empty.
+    // exceptionFatal = If the exception if fatal or not. Defaults to true
+    // userId = The ID of the user to track
+    TagManager.prototype.trackException = function(success, fail, exceptionDescription, exceptionFatal, userId) {
+        var timestamp = new Date().getTime();
+        queue.push({
+            timestamp: timestamp,
+            method: 'trackException',
+            success: success,
+            fail: fail,
+            exceptionDescription: exceptionDescription,
+            exceptionFatal: exceptionFatal ? 1 : 0,
+            userId: userId
+        });
+    };
+
+
     // force a dispatch to Tag Manager
     TagManager.prototype.dispatch = function (success, fail) {
         var timestamp = new Date().getTime();
@@ -116,8 +157,31 @@
                 } else {
                     cordovaRef.exec(item.success, item.fail, 'TagManager', item.method, [item.pageURL, null]);
                 }
-            }
-            else if (item.method === 'dispatch') {
+            } else if (item.method === 'trackTiming') {
+                if (item.userId) {
+                    cordovaRef.exec(
+                        item.success, item.fail, 'TagManager', item.method,
+                        [item.category, item.timingVar, item.timingLabel, item.timingValue, item.userId]
+                    );
+                } else {
+                    cordovaRef.exec(
+                        item.success, item.fail, 'TagManager', item.method,
+                        [item.category, item.timingVar, item.timingLabel, item.timingValue, null]
+                    );
+                }
+            } else if (item.method === 'trackException') {
+                if (item.userId) {
+                    cordovaRef.exec(
+                        item.success, item.fail, 'TagManager', item.method,
+                        [item.exceptionDescription, item.exceptionFatal, item.userId]
+                    );
+                } else {
+                    cordovaRef.exec(
+                        item.success, item.fail, 'TagManager', item.method,
+                        [item.exceptionDescription, item.exceptionFatal, null]
+                    );
+                }
+            } else if (item.method === 'dispatch') {
                 cordovaRef.exec(item.success, item.fail, 'TagManager', item.method, []);
             }
             else if (item.method === 'exitGTM') {
