@@ -125,6 +125,63 @@
     }
 }
 
+- (void) trackTiming:(CDVInvokedUrlCommand*)command
+{
+    NSString *callbackId = command.callbackId;
+    NSString *category = [command.arguments objectAtIndex:0];
+    NSString *timingVar = [command.arguments objectAtIndex:1];
+    NSString *timingLabel = [command.arguments objectAtIndex:2];
+    NSNumber *timingValue = [NSNumber numberWithInt:[[command.arguments objectAtIndex:3] intValue]];
+    NSString *userId = [command.arguments objectAtIndex:4];
+
+    if (inited) {
+        if (userId != nil) {
+            TAGDataLayer *dataLayer = [TAGManager instance].dataLayer;
+            [dataLayer push:@{@"event": @"timing",
+                              @"category": category,
+                              @"var": timingVar,
+                              @"label": timingLabel,
+                              @"value": timingValue,
+                              @"user-id": userId}];
+        } else {
+            TAGDataLayer *dataLayer = [TAGManager instance].dataLayer;
+            [dataLayer push:@{@"event": @"timing",
+                              @"category": category,
+                              @"var": timingVar,
+                              @"label": timingLabel,
+                              @"value": timingValue}];
+        }
+    } else {
+        [self failWithMessage:@"trackPage failed - not initialized" toID:callbackId withError:nil];
+    }
+}
+
+- (void) trackException:(CDVInvokedUrlCommand*)command
+{
+    NSString *callbackId = command.callbackId;
+    NSString *description = [command.arguments objectAtIndex:0];
+    NSNumber *fatal = [NSNumber numberWithBool:[[command.arguments objectAtIndex:1] boolValue]];
+    NSString *userId = [command.arguments objectAtIndex:2];
+
+    if (inited) {
+        if (userId != nil) {
+            TAGDataLayer *dataLayer = [TAGManager instance].dataLayer;
+            [dataLayer push:@{@"event": @"exception",
+                              @"description": description,
+                              @"fatal": fatal,
+                              @"user-id": userId}];
+        } else {
+            TAGDataLayer *dataLayer = [TAGManager instance].dataLayer;
+            [dataLayer push:@{@"event": @"exception",
+                              @"description": description,
+                              @"fatal": fatal,
+                              @"user-id": userId}];
+        }
+    } else {
+        [self failWithMessage:@"trackPage failed - not initialized" toID:callbackId withError:nil];
+    }
+}
+
 - (void) dispatch:(CDVInvokedUrlCommand*)command
 {
     NSString *callbackId = command.callbackId;
